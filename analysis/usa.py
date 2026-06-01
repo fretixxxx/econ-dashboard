@@ -2,9 +2,9 @@ ANALYSIS_US = """
 ### 1. Macroeconomic Diagnosis
 The US economy expanded at a 1.6% annual rate in Q1 of 2026, which was a notable acceleration from the 0.5% 
 increase in Q4 of 2025. Growth was driven by exports, investment, consumer spending, 
-and government outlays, although this was partly offset by an increase in imports. Growth is still positive, 
+and government spending, although this was partly offset by an increase in imports. Growth is still positive, 
 but it’s gradually slowing down, and the labor market is starting to show early signs of easing. 
-A portion of incomes is leaking abroad, which combined with cooling investment may point to a further 
+Higher imports are subtracting from GDP, which combined with cooling investment may point to a further 
 decline in economic growth.
 
 ### 2. Labor Market
@@ -20,22 +20,21 @@ If this trend persists, it could ease services inflation, while also potentially
 consumer confidence.
 
 ### 3. Inflation
-Headline CPI increased 0.6% in April 2026 (3.8% year‑over‑year), after a 0.9% rise in March. 
-Core CPI (all items less food and energy) rose 0.4% for the month, bringing the annual core rate 
-to 2.8%. Core inflation remains above the Fed’s target, suggesting continuous price pressures in 
-non‑energy services. Shelter costs, which make up about one-third of CPI, are still rising at more 
-than 4% year on year, keeping core inflation at higher levels even as goods prices continue to ease.
-Since market rents have already cooled, shelter inflation should gradually slow in the months ahead, 
-although that tends to happen with a long delay.
+Headline CPI rose 0.6% in April 2026 and was 3.8% higher than a year earlier, while 
+core CPI increased 0.4% on the month and 2.8% over the year. Core inflation remains above the Fed’s target, 
+suggesting continuous price pressures in non‑energy services. Shelter costs, which make up about one-third 
+of CPI, are still rising at more than 4% year on year, keeping core inflation at higher levels 
+even as goods prices continue to ease. Since market rents have already cooled, shelter inflation 
+should gradually slow in the months ahead, although that tends to happen with a long delay.
 
 ### 4. Monetary Policy
-The Federal Reserve has kept the federal funds rate at 4.25–4.5% since June 2025, 
+The Federal Reserve has kept the federal funds rate at 3.5-3.75%, 
 maintaining a cautious stance as inflation stays above target. The central bank continues to 
 reduce its balance sheet, but at a slower pace to ensure financial stability. Policymakers highlight 
 tariff uncertainty as a key risk that could contribute to higher inflation and constrain economic growth.
 
 ### 5. Fiscal Position
-Federal debt held by the public currently equals 100% of GDP – and is projected to reach 118% by 2035. 
+Federal debt held by the public currently equals 100% of GDP – and is projected to reach 120% by 2036. 
 Mandatory spending and interest costs are growing faster than revenues, raising long‑term 
 sustainability concerns. Interest payments are rising faster than government revenues, 
 meaning debt is increasing even without additional spending because interest costs accumulate over time.
@@ -43,9 +42,9 @@ This creates a situation where debt grows faster than the economy, reducing the 
 flexibility to support the economy during a downturn.
 
 ### 6. External Sector
-The U.S. consistently runs a current account deficit of around 3% of GDP, financed comfortably by 
+The U.S. consistently runs a current account deficit of around 3.9% of GDP, financed comfortably by 
 global demand for dollar assets. This external funding model is not an immediate risk, but the slow 
-decline in the dollar's share of global reserves — from 71% (2000) to 58% (2023) — suggests the world 
+decline in the dollar's share of global reserves — from 71% (2000) to 56% (2025 Q2) — suggests the world 
 is gradually diversifying and distancing from the dollar more and more. In early 2026, the US dollar 
 has been fluctuating against major currencies as investors reassess expectations for the 
 Federal Reserve’s interest rate path, but there are no signs of a significant loss of 
@@ -53,7 +52,7 @@ confidence in the currency.
 
 ### 7. Country‑Specific Risks
 The most immediate vulnerability is tariff policy uncertainty, which was flagged by the Fed 
-as a potential drag on growth and a possible source of renewed inflationory pressure. 
+as a potential drag on growth and a possible source of renewed inflationary pressure. 
 Longer-term risks include an unsustainable debt trajectory and the possibility that sticky core inflation 
 could force the Fed to maintain higher interest rates for longer period of time, increasing the risk of a recession.
 
@@ -72,7 +71,7 @@ in the second half, with unemployment climbing to 5.5%.
 
 **Optimistic case (productivity‑led disinflation):** AI‑driven efficiency gains and a sustained 
 fall in wage growth below 3% year‑over‑year pull core CPI down to 2.0% by end‑2026. 
-With inflation convincingly at target, the Fed cuts rates to 3.50% in a series of moves 
+With inflation convincingly at target, the Fed cuts rates towards 3.50% in a series of moves 
 starting in mid‑2026, stimulating investment and a growth re‑acceleration to 2.5%. 
 Unemployment remains near 4.0%. This scenario is appealing but requires a positive supply 
 shock that is not yet visible in the data.
