@@ -115,15 +115,18 @@ COUNTRY_CONFIG = {
         "gdp_indicator": "GDP_GROWTH",          # level: US_GDP_GROWTH
         "inflation_indicator": "INFLATION",
         "inflation_index_title": "CPI Index (1984=100)",
+        "gdp_level_scale": 1,                   # already in billions
     },
-   "Turkey": {
+    "Turkey": {
         "prefix": "TUR",
-        "gdp_is_level": False,                 # use growth rate directly
+        "gdp_is_level": True,
         "inflation_is_level": True,
-        "gdp_display_options": ["YoY Growth %"],
-        "gdp_indicator": "GDP_GROWTH",         # already a growth rate in CSV
+        "gdp_display_options": ["Billions (US$)", "YoY Growth %"],
+        "gdp_indicator": "GDP_USD",               # level in current USD
+        "gdp_growth_indicator": "GDP_GROWTH",     # growth rate for YoY card & chart
         "inflation_indicator": "INFLATION",
         "inflation_index_title": "CPI Index (2015=100)",
+        "gdp_level_scale": 1e9,                   # divide by 1 billion
     },
 }
 
@@ -150,7 +153,6 @@ gdp_mode = st.sidebar.radio(
     horizontal=True,
     key="gdp_mode"
 )
-# Determine if the current mode is the “level” option (first in the list)
 show_gdp_level = (gdp_mode == gdp_display_options[0])
 
 # Date filter for charts
@@ -171,7 +173,8 @@ else:
     df_filtered = df.copy()
 
 # Build actual indicator codes
-gdp_ind = f"{prefix}_{gdp_indicator_name}"
+gdp_level_ind = f"{prefix}_{gdp_indicator_name}"
+gdp_growth_ind = f"{prefix}_{config['gdp_growth_indicator']}" if 'gdp_growth_indicator' in config else None
 cpi_ind = f"{prefix}_{inflation_indicator_name}"
 unemp_ind = f'{prefix}_UNEMPLOYMENT'
 rate_ind = f'{prefix}_INTEREST_RATE'
@@ -193,8 +196,8 @@ with tab1:
                 st.write("")
                 st.write("")
                 if st.button("Compute Growth"):
-                    val_gdp_start, _ = get_value_at_date(df, gdp_ind, growth_start)
-                    val_gdp_end, _   = get_value_at_date(df, gdp_ind, growth_end)
+                    val_gdp_start, _ = get_value_at_date(df, gdp_level_ind, growth_start)
+                    val_gdp_end, _   = get_value_at_date(df, gdp_level_ind, growth_end)
                     val_cpi_start, _ = get_value_at_date(df, cpi_ind, growth_start)
                     val_cpi_end, _   = get_value_at_date(df, cpi_ind, growth_end)
 
@@ -222,28 +225,40 @@ with tab1:
                                 st.caption(f"Annualized: {cpi_cagr:.2f}% over {years:.1f} years")
 
     # ---------- metric cards ----------
-    gdp_val, gdp_date = get_latest(df_filtered, gdp_ind)
+    gdp_val_level, gdp_date_level = get_latest(df_filtered, gdp_level_ind)
     cpi_val, cpi_date = get_latest(df_filtered, cpi_ind)
     unemp_val, unemp_date = get_latest(df_filtered, unemp_ind)
     rate_val, rate_date = get_latest(df_filtered, rate_ind)
 
     # --- GDP card ---
-    if gdp_val is not None:
-        if gdp_is_level and show_gdp_level:
-            # Show the level (Billions / Billions (₺) etc.)
-            gdp_display = f"{gdp_val:,.2f}"
+    if gdp_is_level and show_gdp_level:
+        # Show level (Billions / Billions (US$) etc.)
+        if gdp_val_level is not None:
+            scale = config.get("gdp_level_scale", 1)
+            gdp_display = f"{gdp_val_level / scale:,.2f}"
             gdp_label = f"Real GDP ({gdp_display_options[0]})"
+            gdp_date = gdp_date_level
         else:
-            # Show YoY growth
-            if gdp_is_level:
-                yoy_gdp = get_yoy_growth(df_filtered, gdp_ind, pd.to_datetime(gdp_date))
-                gdp_display = f"{yoy_gdp:.2f}%" if yoy_gdp is not None else "N/A"
-            else:
-                gdp_display = f"{gdp_val:.2f}%"
-            gdp_label = "GDP Growth (YoY %)"
+            gdp_display = "N/A"
+            gdp_label = "GDP Growth"
+            gdp_date = None
     else:
-        gdp_display = "N/A"
-        gdp_label = "GDP Growth"
+        # Show YoY growth
+        ind_to_use = gdp_growth_ind if gdp_growth_ind else gdp_level_ind
+        gdp_val_growth, gdp_date_growth = get_latest(df_filtered, ind_to_use)
+        if gdp_val_growth is not None:
+            if gdp_growth_ind:
+                # already a growth rate
+                gdp_display = f"{gdp_val_growth:.2f}%"
+            else:
+                yoy = get_yoy_growth(df_filtered, gdp_level_ind, pd.to_datetime(gdp_date_growth))
+                gdp_display = f"{yoy:.2f}%" if yoy is not None else "N/A"
+            gdp_date = gdp_date_growth
+            gdp_label = "GDP Growth (YoY %)"
+        else:
+            gdp_display = "N/A"
+            gdp_label = "GDP Growth"
+            gdp_date = None
 
     # --- Inflation card ---
     if cpi_val is not None:
@@ -280,27 +295,33 @@ with tab1:
     with c1:
         # --- GDP chart ---
         if gdp_is_level:
-            gdp_growth_df = compute_yoy_growth_series(df_filtered, gdp_ind)
-            if not gdp_growth_df.empty:
-                fig_gdp = go.Figure()
-                fig_gdp.add_trace(go.Scatter(
-                    x=gdp_growth_df['date'], y=gdp_growth_df['value'],
-                    line=dict(color='#2ca02c', width=2.5),
-                    fill='tozeroy',
-                    fillcolor='rgba(44,160,44,0.1)'
-                ))
-                fig_gdp.update_layout(
-                    title='GDP Growth (YoY %)',
-                    height=300,
-                    margin=dict(l=10, r=10, t=40, b=10),
-                    hovermode='x unified',
-                    template='plotly_white'
-                )
-                st.plotly_chart(fig_gdp, use_container_width=True)
+            if gdp_growth_ind:
+                # Separate growth indicator -> plot it directly
+                fig_gdp = make_chart(df_filtered, gdp_growth_ind, 'GDP Growth (YoY %)', '#2ca02c')
+                if fig_gdp: st.plotly_chart(fig_gdp, use_container_width=True)
             else:
-                st.warning("Not enough data to compute GDP growth.")
+                # Compute YoY from level
+                gdp_growth_df = compute_yoy_growth_series(df_filtered, gdp_level_ind)
+                if not gdp_growth_df.empty:
+                    fig_gdp = go.Figure()
+                    fig_gdp.add_trace(go.Scatter(
+                        x=gdp_growth_df['date'], y=gdp_growth_df['value'],
+                        line=dict(color='#2ca02c', width=2.5),
+                        fill='tozeroy',
+                        fillcolor='rgba(44,160,44,0.1)'
+                    ))
+                    fig_gdp.update_layout(
+                        title='GDP Growth (YoY %)',
+                        height=300,
+                        margin=dict(l=10, r=10, t=40, b=10),
+                        hovermode='x unified',
+                        template='plotly_white'
+                    )
+                    st.plotly_chart(fig_gdp, use_container_width=True)
+                else:
+                    st.warning("Not enough data to compute GDP growth.")
         else:
-            fig_gdp = make_chart(df_filtered, gdp_ind, 'GDP Growth (YoY %)', '#2ca02c')
+            fig_gdp = make_chart(df_filtered, gdp_level_ind, 'GDP Growth (YoY %)', '#2ca02c')
             if fig_gdp: st.plotly_chart(fig_gdp, use_container_width=True)
 
         # --- Inflation chart ---
