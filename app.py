@@ -57,20 +57,16 @@ def get_yoy_growth(df, indicator, current_date):
         return (val_current - val_prev) / val_prev * 100
     return None
 
-# ---------- helper: compute YoY growth for a level indicator ----------
 def compute_yoy_growth_series(df, indicator):
     """Return a DataFrame with 'date' and 'value' as YoY percent change."""
     sub = df[df['indicator'] == indicator].sort_values('date').copy()
     if sub.empty:
         return pd.DataFrame(columns=['date', 'value'])
     
-    # Find value one year earlier for each date
     yoy_values = []
     for idx, row in sub.iterrows():
         current_date = row['date']
-        # target date 1 year ago
         prev_date = current_date - pd.DateOffset(years=1)
-        # get closest value
         prev_val, _ = get_value_at_date(df, indicator, prev_date)
         if prev_val and prev_val != 0:
             growth = (row['value'] - prev_val) / prev_val * 100
@@ -78,46 +74,7 @@ def compute_yoy_growth_series(df, indicator):
         else:
             yoy_values.append({'date': current_date, 'value': None})
     
-    growth_df = pd.DataFrame(yoy_values).dropna(subset=['value'])
-    return growth_df
-
-# ---------- header ----------
-st.title("🌍 Global Macroeconomic Dashboard")
-st.markdown("Real-time indicators across major economies with expert analysis")
-
-# ---------- sidebar ----------
-st.sidebar.header("🔍 Settings")
-country = st.sidebar.selectbox("Select Economy", ["United States"])
-
-# --- GDP display mode (new) ---
-gdp_mode = st.sidebar.radio(
-    "GDP display",
-    options=["Billions", "YoY Growth %"],
-    horizontal=True,
-    key="gdp_mode"
-)
-
-# date filter for charts
-st.sidebar.subheader("📅 Chart date range")
-apply_range = st.sidebar.checkbox("Apply date range to charts", value=False)
-if apply_range:
-    col_s, col_e = st.sidebar.columns(2)
-    with col_s:
-        filter_start = st.date_input("Start", value=datetime(2020, 1, 1), key="filter_start")
-    with col_e:
-        filter_end = st.date_input("End", value=datetime(2026, 12, 31), key="filter_end")
-
-prefix_map = {"United States": "US"}
-prefix = prefix_map[country]
-
-# indicator definitions (labels & types)
-INDICATORS = [
-    (f'{prefix}_GDP_GROWTH',    'Real GDP (billions)',   'level'),
-    (f'{prefix}_INFLATION',     'CPI Index (1984=100)',  'level'),
-    (f'{prefix}_INFLATION',     'Inflation Rate',        'inflation'),   # new entry for inflation %
-    (f'{prefix}_UNEMPLOYMENT',  'Unemployment Rate',     'rate'),
-    (f'{prefix}_INTEREST_RATE', 'Policy Interest Rate',  'rate'),
-]
+    return pd.DataFrame(yoy_values).dropna(subset=['value'])
 
 def get_latest(df, indicator):
     sub = df[df['indicator'] == indicator].dropna(subset=['value'])
@@ -146,6 +103,35 @@ def make_chart(df, indicator, title, color='#1f77b4'):
     )
     return fig
 
+# ---------- header ----------
+st.title("🌍 Global Macroeconomic Dashboard")
+st.markdown("Real-time indicators across major economies with expert analysis")
+
+# ---------- sidebar ----------
+st.sidebar.header("🔍 Settings")
+country = st.sidebar.selectbox("Select Economy", ["United States"])
+
+# GDP display mode
+gdp_mode = st.sidebar.radio(
+    "GDP display",
+    options=["Billions", "YoY Growth %"],
+    horizontal=True,
+    key="gdp_mode"
+)
+
+# date filter for charts
+st.sidebar.subheader("📅 Chart date range")
+apply_range = st.sidebar.checkbox("Apply date range to charts", value=False)
+if apply_range:
+    col_s, col_e = st.sidebar.columns(2)
+    with col_s:
+        filter_start = st.date_input("Start", value=datetime(2020, 1, 1), key="filter_start")
+    with col_e:
+        filter_end = st.date_input("End", value=datetime(2026, 12, 31), key="filter_end")
+
+prefix_map = {"United States": "US"}
+prefix = prefix_map[country]
+
 # ---------- filtered data ----------
 if apply_range:
     mask = (df['date'] >= pd.to_datetime(filter_start)) & (df['date'] <= pd.to_datetime(filter_end))
@@ -156,7 +142,6 @@ else:
 # ---------- tabs ----------
 tab1, tab2 = st.tabs(["📊 Dashboard", "📝 Analysis"])
 
-# ==================== DASHBOARD TAB ====================
 with tab1:
 
     # ---------- period growth expander ----------
@@ -201,8 +186,7 @@ with tab1:
                             cpi_cagr = ((val_cpi_end / val_cpi_start) ** (1 / years) - 1) * 100
                             st.caption(f"Annualized: {cpi_cagr:.2f}% over {years:.1f} years")
 
-    # ---------- metric cards (top) ----------
-    # ---------- metric cards (top) ----------
+    # ---------- metric cards ----------
     gdp_ind = f'{prefix}_GDP_GROWTH'
     cpi_ind = f'{prefix}_INFLATION'
     unemp_ind = f'{prefix}_UNEMPLOYMENT'
@@ -233,11 +217,9 @@ with tab1:
     else:
         cpi_display = "N/A"
 
-    # Unemployment & interest rate are percentages
     unemp_display = f"{unemp_val:.2f}%" if unemp_val is not None else "N/A"
     rate_display = f"{rate_val:.2f}%" if rate_val is not None else "N/A"
 
-    # Display three metric cards
     cols = st.columns(3)
     card_data = [
         (gdp_label, gdp_display, gdp_date),
@@ -258,7 +240,7 @@ with tab1:
     # ---------- charts ----------
     c1, c2 = st.columns(2)
     with c1:
-        # --- GDP Growth (YoY %) instead of level ---
+        # GDP Growth (YoY %)
         gdp_growth_df = compute_yoy_growth_series(df_filtered, f'{prefix}_GDP_GROWTH')
         if not gdp_growth_df.empty:
             fig_gdp = go.Figure()
@@ -279,23 +261,24 @@ with tab1:
         else:
             st.warning("Not enough data to compute GDP growth.")
 
-        # --- CPI Level chart ---
+        # CPI Level chart
         fig_cpi = make_chart(df_filtered, f'{prefix}_INFLATION', 'CPI Index (1984=100)', '#d62728')
         if fig_cpi: st.plotly_chart(fig_cpi, use_container_width=True)
 
     with c2:
+        # Unemployment Rate chart
         fig_unemp = make_chart(df_filtered, f'{prefix}_UNEMPLOYMENT', 'Unemployment Rate', '#9467bd')
         if fig_unemp: st.plotly_chart(fig_unemp, use_container_width=True)
-        fig_rate = make_chart(df_filtered, f'{prefix}_INTEREST_RATE', 'Cental Bank Interest Rate', '#ff7f0e')
+
+        # Central Bank Interest Rate chart
+        fig_rate = make_chart(df_filtered, f'{prefix}_INTEREST_RATE', 'Policy Interest Rate', '#ff7f0e')
         if fig_rate: st.plotly_chart(fig_rate, use_container_width=True)
 
-# ==================== ANALYSIS TAB ====================
 with tab2:
     analysis_dict = {
         "United States": ANALYSIS_US,
     }
     st.markdown(analysis_dict.get(country, "Analysis not available."))
 
-# ---------- footer ----------
 st.markdown("---")
 st.caption("Data: FRED, World Bank, Yahoo Finance | Built with Streamlit")
