@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 
 from analysis.usa import ANALYSIS_US
+from analysis.turkey import ANALYSIS_TUR
 
 # ---------- page config & styles ----------
 st.set_page_config(page_title="Global Economic Dashboard", layout="wide", page_icon="🌍")
@@ -104,21 +105,43 @@ def make_chart(df, indicator, title, color='#1f77b4'):
     )
     return fig
 
+# ---------- country configuration ----------
+COUNTRY_CONFIG = {
+    "United States": {
+        "prefix": "US",
+        "gdp_is_level": True,      # GDP stored as billions -> need toggle + YoY calc
+        "inflation_is_level": True, # CPI index -> need YoY calc
+    },
+    "Turkey": {
+        "prefix": "TUR",
+        "gdp_is_level": False,      # GDP already a growth rate
+        "inflation_is_level": False, # Inflation already a growth rate
+    },
+}
+
 # ---------- header ----------
 st.title("🌍 Global Macroeconomic Dashboard")
 st.markdown("Real-time indicators across major economies with expert analysis")
 
 # ---------- sidebar ----------
 st.sidebar.header("🔍 Settings")
-country = st.sidebar.selectbox("Select Economy", ["United States"])
+country = st.sidebar.selectbox("Select Economy", list(COUNTRY_CONFIG.keys()))
 
-# GDP display mode toggle
-gdp_mode = st.sidebar.radio(
-    "GDP display",
-    options=["Billions", "YoY Growth %"],
-    horizontal=True,
-    key="gdp_mode"
-)
+config = COUNTRY_CONFIG[country]
+prefix = config["prefix"]
+gdp_is_level = config["gdp_is_level"]
+inflation_is_level = config["inflation_is_level"]
+
+# GDP toggle only for the US (where GDP is a level)
+if gdp_is_level:
+    gdp_mode = st.sidebar.radio(
+        "GDP display",
+        options=["Billions", "YoY Growth %"],
+        horizontal=True,
+        key="gdp_mode"
+    )
+else:
+    gdp_mode = None  # no toggle
 
 # Date filter for charts
 st.sidebar.subheader("📅 Chart date range")
@@ -129,9 +152,6 @@ if apply_range:
         filter_start = st.date_input("Start", value=datetime(2020, 1, 1), key="filter_start")
     with col_e:
         filter_end = st.date_input("End", value=datetime(2026, 12, 31), key="filter_end")
-
-prefix_map = {"United States": "US"}
-prefix = prefix_map[country]
 
 # ---------- filtered data ----------
 if apply_range:
@@ -146,48 +166,50 @@ tab1, tab2 = st.tabs(["📊 Dashboard", "📝 Analysis"])
 with tab1:
 
     # ---------- period growth expander ----------
-    with st.expander("📈 Calculate GDP / Inflation growth for a custom period", expanded=False):
-        colA, colB, colC = st.columns(3)
-        with colA:
-            growth_start = st.date_input("Start date", value=datetime(2024, 1, 1), key="growth_start")
-        with colB:
-            growth_end = st.date_input("End date", value=datetime(2025, 1, 1), key="growth_end")
-        with colC:
-            st.write("")
-            st.write("")
-            if st.button("Compute Growth"):
-                gdp_ind = f'{prefix}_GDP_GROWTH'
-                cpi_ind = f'{prefix}_INFLATION'
+    # Only show when GDP is a level (US) – otherwise the calculation is meaningless
+    if gdp_is_level:
+        with st.expander("📈 Calculate GDP / Inflation growth for a custom period", expanded=False):
+            colA, colB, colC = st.columns(3)
+            with colA:
+                growth_start = st.date_input("Start date", value=datetime(2024, 1, 1), key="growth_start")
+            with colB:
+                growth_end = st.date_input("End date", value=datetime(2025, 1, 1), key="growth_end")
+            with colC:
+                st.write("")
+                st.write("")
+                if st.button("Compute Growth"):
+                    gdp_ind = f'{prefix}_GDP_GROWTH'
+                    cpi_ind = f'{prefix}_INFLATION'
 
-                val_gdp_start, _ = get_value_at_date(df, gdp_ind, growth_start)
-                val_gdp_end, _   = get_value_at_date(df, gdp_ind, growth_end)
-                val_cpi_start, _ = get_value_at_date(df, cpi_ind, growth_start)
-                val_cpi_end, _   = get_value_at_date(df, cpi_ind, growth_end)
+                    val_gdp_start, _ = get_value_at_date(df, gdp_ind, growth_start)
+                    val_gdp_end, _   = get_value_at_date(df, gdp_ind, growth_end)
+                    val_cpi_start, _ = get_value_at_date(df, cpi_ind, growth_start)
+                    val_cpi_end, _   = get_value_at_date(df, cpi_ind, growth_end)
 
-                if val_gdp_start is None or val_gdp_end is None:
-                    st.error("Insufficient GDP data for this date range.")
-                elif val_cpi_start is None or val_cpi_end is None:
-                    st.error("Insufficient CPI data for this date range.")
-                else:
-                    gdp_change = (val_gdp_end - val_gdp_start) / val_gdp_start * 100
-                    cpi_change = (val_cpi_end - val_cpi_start) / val_cpi_start * 100
+                    if val_gdp_start is None or val_gdp_end is None:
+                        st.error("Insufficient GDP data for this date range.")
+                    elif val_cpi_start is None or val_cpi_end is None:
+                        st.error("Insufficient CPI data for this date range.")
+                    else:
+                        gdp_change = (val_gdp_end - val_gdp_start) / val_gdp_start * 100
+                        cpi_change = (val_cpi_end - val_cpi_start) / val_cpi_start * 100
 
-                    days = (growth_end - growth_start).days
-                    years = days / 365.25
+                        days = (growth_end - growth_start).days
+                        years = days / 365.25
 
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.metric("GDP Total Change", f"{gdp_change:.2f}%")
-                        if years >= 1.0:
-                            gdp_cagr = ((val_gdp_end / val_gdp_start) ** (1 / years) - 1) * 100
-                            st.caption(f"Annualized (CAGR): {gdp_cagr:.2f}% over {years:.1f} years")
-                    with col2:
-                        st.metric("CPI Total Change", f"{cpi_change:.2f}%")
-                        if years >= 1.0:
-                            cpi_cagr = ((val_cpi_end / val_cpi_start) ** (1 / years) - 1) * 100
-                            st.caption(f"Annualized: {cpi_cagr:.2f}% over {years:.1f} years")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.metric("GDP Total Change", f"{gdp_change:.2f}%")
+                            if years >= 1.0:
+                                gdp_cagr = ((val_gdp_end / val_gdp_start) ** (1 / years) - 1) * 100
+                                st.caption(f"Annualized (CAGR): {gdp_cagr:.2f}% over {years:.1f} years")
+                        with col2:
+                            st.metric("CPI Total Change", f"{cpi_change:.2f}%")
+                            if years >= 1.0:
+                                cpi_cagr = ((val_cpi_end / val_cpi_start) ** (1 / years) - 1) * 100
+                                st.caption(f"Annualized: {cpi_cagr:.2f}% over {years:.1f} years")
 
-    # ---------- metric cards (GDP toggle + inflation rate) ----------
+    # ---------- metric cards ----------
     gdp_ind = f'{prefix}_GDP_GROWTH'
     cpi_ind = f'{prefix}_INFLATION'
     unemp_ind = f'{prefix}_UNEMPLOYMENT'
@@ -198,27 +220,32 @@ with tab1:
     unemp_val, unemp_date = get_latest(df_filtered, unemp_ind)
     rate_val, rate_date = get_latest(df_filtered, rate_ind)
 
-    # GDP display logic
+    # --- GDP card ---
     if gdp_val is not None:
-        if gdp_mode == "Billions":
+        if gdp_is_level and gdp_mode == "Billions":
             gdp_display = f"{gdp_val:,.2f}"
             gdp_label = "Real GDP (billions)"
         else:
-            yoy_gdp = get_yoy_growth(df_filtered, gdp_ind, pd.to_datetime(gdp_date))
-            gdp_display = f"{yoy_gdp:.2f}%" if yoy_gdp is not None else "N/A"
+            if gdp_is_level:
+                yoy_gdp = get_yoy_growth(df_filtered, gdp_ind, pd.to_datetime(gdp_date))
+                gdp_display = f"{yoy_gdp:.2f}%" if yoy_gdp is not None else "N/A"
+            else:
+                gdp_display = f"{gdp_val:.2f}%"  # already a growth rate
             gdp_label = "GDP Growth (YoY %)"
     else:
         gdp_display = "N/A"
-        gdp_label = "Real GDP"
+        gdp_label = "GDP Growth"
 
-    # Inflation rate (always YoY %)
+    # --- Inflation card ---
     if cpi_val is not None:
-        yoy_cpi = get_yoy_growth(df_filtered, cpi_ind, pd.to_datetime(cpi_date))
-        cpi_display = f"{yoy_cpi:.2f}%" if yoy_cpi is not None else "N/A"
+        if inflation_is_level:
+            yoy_cpi = get_yoy_growth(df_filtered, cpi_ind, pd.to_datetime(cpi_date))
+            cpi_display = f"{yoy_cpi:.2f}%" if yoy_cpi is not None else "N/A"
+        else:
+            cpi_display = f"{cpi_val:.2f}%"
     else:
         cpi_display = "N/A"
 
-    # Unemployment & interest rate are percentages
     unemp_display = f"{unemp_val:.2f}%" if unemp_val is not None else "N/A"
     rate_display = f"{rate_val:.2f}%" if rate_val is not None else "N/A"
 
@@ -242,43 +269,49 @@ with tab1:
     # ---------- charts ----------
     c1, c2 = st.columns(2)
     with c1:
-        # GDP Growth (YoY %) chart
-        gdp_growth_df = compute_yoy_growth_series(df_filtered, f'{prefix}_GDP_GROWTH')
-        if not gdp_growth_df.empty:
-            fig_gdp = go.Figure()
-            fig_gdp.add_trace(go.Scatter(
-                x=gdp_growth_df['date'], y=gdp_growth_df['value'],
-                line=dict(color='#2ca02c', width=2.5),
-                fill='tozeroy',
-                fillcolor='rgba(44,160,44,0.1)'
-            ))
-            fig_gdp.update_layout(
-                title='GDP Growth (YoY %)',
-                height=300,
-                margin=dict(l=10, r=10, t=40, b=10),
-                hovermode='x unified',
-                template='plotly_white'
-            )
-            st.plotly_chart(fig_gdp, use_container_width=True)
+        # --- GDP chart ---
+        if gdp_is_level:
+            # US: show YoY growth series
+            gdp_growth_df = compute_yoy_growth_series(df_filtered, gdp_ind)
+            if not gdp_growth_df.empty:
+                fig_gdp = go.Figure()
+                fig_gdp.add_trace(go.Scatter(
+                    x=gdp_growth_df['date'], y=gdp_growth_df['value'],
+                    line=dict(color='#2ca02c', width=2.5),
+                    fill='tozeroy',
+                    fillcolor='rgba(44,160,44,0.1)'
+                ))
+                fig_gdp.update_layout(
+                    title='GDP Growth (YoY %)',
+                    height=300,
+                    margin=dict(l=10, r=10, t=40, b=10),
+                    hovermode='x unified',
+                    template='plotly_white'
+                )
+                st.plotly_chart(fig_gdp, use_container_width=True)
+            else:
+                st.warning("Not enough data to compute GDP growth.")
         else:
-            st.warning("Not enough data to compute GDP growth.")
+            # Turkey: already a growth rate, just plot directly
+            fig_gdp = make_chart(df_filtered, gdp_ind, 'GDP Growth (YoY %)', '#2ca02c')
+            if fig_gdp: st.plotly_chart(fig_gdp, use_container_width=True)
 
-        # CPI Index chart
-        fig_cpi = make_chart(df_filtered, f'{prefix}_INFLATION', 'CPI Index (1984=100)', '#d62728')
-        if fig_cpi: st.plotly_chart(fig_cpi, use_container_width=True)
+        # --- Inflation chart ---
+        infl_title = 'CPI Index (1984=100)' if inflation_is_level else 'Inflation Rate (YoY %)'
+        fig_infl = make_chart(df_filtered, cpi_ind, infl_title, '#d62728')
+        if fig_infl: st.plotly_chart(fig_infl, use_container_width=True)
 
     with c2:
-        # Unemployment Rate chart
-        fig_unemp = make_chart(df_filtered, f'{prefix}_UNEMPLOYMENT', 'Unemployment Rate', '#9467bd')
+        fig_unemp = make_chart(df_filtered, unemp_ind, 'Unemployment Rate', '#9467bd')
         if fig_unemp: st.plotly_chart(fig_unemp, use_container_width=True)
 
-        # Policy Interest Rate chart
-        fig_rate = make_chart(df_filtered, f'{prefix}_INTEREST_RATE', 'Policy Interest Rate', '#ff7f0e')
+        fig_rate = make_chart(df_filtered, rate_ind, 'Policy Interest Rate', '#ff7f0e')
         if fig_rate: st.plotly_chart(fig_rate, use_container_width=True)
 
 with tab2:
     analysis_dict = {
         "United States": ANALYSIS_US,
+        "Turkey": ANALYSIS_TUR,
     }
     st.markdown(analysis_dict.get(country, "Analysis not available."))
 
