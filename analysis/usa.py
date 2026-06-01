@@ -1,8 +1,8 @@
 ANALYSIS_US = """
 ### 1. Macroeconomic Diagnosis
-The US economy expanded at a 1.6% annual rate in Q1 2026, a notable acceleration from the 0.5% 
-increase in Q4 2025. Growth was driven by exports, investment, consumer spending, 
-and government outlays, though rising imports partially offset demand. Growth is still positive, 
+The US economy expanded at a 1.6% annual rate in Q1 of 2026, which was a notable acceleration from the 0.5% 
+increase in Q4 of 2025. Growth was driven by exports, investment, consumer spending, 
+and government outlays, although this was partly offset by an increase in imports. Growth is still positive, 
 but it’s gradually slowing down, and the labor market is starting to show early signs of easing. 
 A portion of incomes is leaking abroad, which combined with cooling investment may point to a further 
 decline in economic growth.
@@ -32,7 +32,7 @@ although that tends to happen with a long delay.
 The Federal Reserve has kept the federal funds rate at 4.25–4.5% since June 2025, 
 maintaining a cautious stance as inflation stays above target. The central bank continues to 
 reduce its balance sheet, but at a slower pace to ensure financial stability. Policymakers highlight 
-tariff uncertainty as a key risk that could raise prices and slow growth.
+tariff uncertainty as a key risk that could contribute to higher inflation and constrain economic growth.
 
 ### 5. Fiscal Position
 Federal debt held by the public currently equals 100% of GDP – and is projected to reach 118% by 2035. 
@@ -52,17 +52,17 @@ Federal Reserve’s interest rate path, but there are no signs of a significant 
 confidence in the currency.
 
 ### 7. Country‑Specific Risks
-The most immediate vulnerability is tariff policy uncertainty, explicitly flagged by the Fed 
-as a potential drag on growth and a source of renewed inflation. Longer‑term risks include the 
-unsustainable debt trajectory and the possibility that sticky core inflation forces the Fed to keep 
-rates higher for longer, heightening recession odds.
+The most immediate vulnerability is tariff policy uncertainty, which was flagged by the Fed 
+as a potential drag on growth and a possible source of renewed inflationory pressure. 
+Longer-term risks include an unsustainable debt trajectory and the possibility that sticky core inflation 
+could force the Fed to maintain higher interest rates for longer period of time, increasing the risk of a recession.
 
 ### 8. Scenarios
 **Base case (soft landing):** GDP grows 1.8% in 2026. Core inflation gradually falls to 2.5% by the 
 fourth quarter. The Fed delivers a single 25‑basis‑point rate cut in December 2026, only after 
 becoming confident that core inflation is on a sustained downward path. 
-Unemployment edges up to 4.5%, consistent with a gentle loosening of the labor market 
-rather than a recession.
+Unemployment rises to 4.5%, reflecting a gradual softening in the labor market 
+rather than a recessionary downturn.
 
 **Risk case (stagflationary tilt):** Tariff increases and supply‑chain disruptions push 
 headline CPI back above 4% by mid‑2026, while slowing business investment. The Fed is forced 
