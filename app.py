@@ -48,6 +48,15 @@ def get_value_at_date(df, indicator, target_date):
     closest = sub.loc[sub['diff'].idxmin()]
     return closest['value'], closest['date']
 
+def get_yoy_growth(df, indicator, current_date):
+    """Compute year-over-year percent change for an indicator at a specific date."""
+    prev_date = current_date - pd.DateOffset(years=1)
+    val_current, _ = get_value_at_date(df, indicator, current_date)
+    val_prev, _ = get_value_at_date(df, indicator, prev_date)
+    if val_current is not None and val_prev is not None and val_prev != 0:
+        return (val_current - val_prev) / val_prev * 100
+    return None
+
 # ---------- helper: compute YoY growth for a level indicator ----------
 def compute_yoy_growth_series(df, indicator):
     """Return a DataFrame with 'date' and 'value' as YoY percent change."""
@@ -80,6 +89,14 @@ st.markdown("Real-time indicators across major economies with expert analysis")
 st.sidebar.header("🔍 Settings")
 country = st.sidebar.selectbox("Select Economy", ["United States"])
 
+# --- GDP display mode (new) ---
+gdp_mode = st.sidebar.radio(
+    "GDP display",
+    options=["Billions", "YoY Growth %"],
+    horizontal=True,
+    key="gdp_mode"
+)
+
 # date filter for charts
 st.sidebar.subheader("📅 Chart date range")
 apply_range = st.sidebar.checkbox("Apply date range to charts", value=False)
@@ -95,10 +112,11 @@ prefix = prefix_map[country]
 
 # indicator definitions (labels & types)
 INDICATORS = [
-    (f'{prefix}_GDP_GROWTH',    'Real GDP (billions)',     'level'),
-    (f'{prefix}_INFLATION',     'CPI Index (1984=100)',    'level'),
-    (f'{prefix}_UNEMPLOYMENT',  'Unemployment Rate',       'rate'),
-    (f'{prefix}_INTEREST_RATE', 'Policy Interest Rate',    'rate'),
+    (f'{prefix}_GDP_GROWTH',    'Real GDP (billions)',   'level'),
+    (f'{prefix}_INFLATION',     'CPI Index (1984=100)',  'level'),
+    (f'{prefix}_INFLATION',     'Inflation Rate',        'inflation'),   # new entry for inflation %
+    (f'{prefix}_UNEMPLOYMENT',  'Unemployment Rate',     'rate'),
+    (f'{prefix}_INTEREST_RATE', 'Policy Interest Rate',  'rate'),
 ]
 
 def get_latest(df, indicator):
@@ -184,24 +202,58 @@ with tab1:
                             st.caption(f"Annualized: {cpi_cagr:.2f}% over {years:.1f} years")
 
     # ---------- metric cards (top) ----------
+    # ---------- metric cards (top) ----------
+    gdp_ind = f'{prefix}_GDP_GROWTH'
+    cpi_ind = f'{prefix}_INFLATION'
+    unemp_ind = f'{prefix}_UNEMPLOYMENT'
+    rate_ind = f'{prefix}_INTEREST_RATE'
+
+    gdp_val, gdp_date = get_latest(df_filtered, gdp_ind)
+    cpi_val, cpi_date = get_latest(df_filtered, cpi_ind)
+    unemp_val, unemp_date = get_latest(df_filtered, unemp_ind)
+    rate_val, rate_date = get_latest(df_filtered, rate_ind)
+
+    # GDP display logic
+    if gdp_val is not None:
+        if gdp_mode == "Billions":
+            gdp_display = f"{gdp_val:,.2f}"
+            gdp_label = "Real GDP (billions)"
+        else:
+            yoy_gdp = get_yoy_growth(df_filtered, gdp_ind, pd.to_datetime(gdp_date))
+            gdp_display = f"{yoy_gdp:.2f}%" if yoy_gdp is not None else "N/A"
+            gdp_label = "GDP Growth (YoY %)"
+    else:
+        gdp_display = "N/A"
+        gdp_label = "Real GDP"
+
+    # Inflation rate (always YoY %)
+    if cpi_val is not None:
+        yoy_cpi = get_yoy_growth(df_filtered, cpi_ind, pd.to_datetime(cpi_date))
+        cpi_display = f"{yoy_cpi:.2f}%" if yoy_cpi is not None else "N/A"
+    else:
+        cpi_display = "N/A"
+
+    # Unemployment & interest rate are percentages
+    unemp_display = f"{unemp_val:.2f}%" if unemp_val is not None else "N/A"
+    rate_display = f"{rate_val:.2f}%" if rate_val is not None else "N/A"
+
+    # Display three metric cards
     cols = st.columns(3)
-    for i, (ind, label, ind_type) in enumerate(INDICATORS[:3]):
-        val, dt = get_latest(df_filtered, ind)
+    card_data = [
+        (gdp_label, gdp_display, gdp_date),
+        ("Inflation Rate", cpi_display, cpi_date),
+        ("Unemployment Rate", unemp_display, unemp_date),
+    ]
+
+    for i, (label, value, dt) in enumerate(card_data):
         with cols[i]:
-            if val is not None:
-                if ind_type == 'level':
-                    formatted = f"{val:,.2f}"
-                else:
-                    formatted = f"{val:.2f}%"
-                st.markdown(f"""
-                <div class="indicator-box">
-                    <div class="metric-label">{label}</div>
-                    <div class="metric-value">{formatted}</div>
-                    <div style="color: #95a5a6; font-size:0.8rem;">as of {dt}</div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.warning(f"No data for {label}")
+            st.markdown(f"""
+            <div class="indicator-box">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value}</div>
+                <div style="color: #95a5a6; font-size:0.8rem;">as of {dt if dt else 'N/A'}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
     # ---------- charts ----------
     c1, c2 = st.columns(2)
