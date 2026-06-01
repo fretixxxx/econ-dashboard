@@ -116,12 +116,12 @@ COUNTRY_CONFIG = {
         "inflation_indicator": "INFLATION",
         "inflation_index_title": "CPI Index (1984=100)",
     },
-    "Turkey": {
+   "Turkey": {
         "prefix": "TUR",
-        "gdp_is_level": True,                    # now a level in TRY
+        "gdp_is_level": False,                 # use growth rate directly
         "inflation_is_level": True,
-        "gdp_display_options": ["Billions (₺)", "YoY Growth %"],
-        "gdp_indicator": "GDP_LEVEL",            # level: TUR_GDP_LEVEL
+        "gdp_display_options": ["YoY Growth %"],
+        "gdp_indicator": "GDP_GROWTH",         # already a growth rate in CSV
         "inflation_indicator": "INFLATION",
         "inflation_index_title": "CPI Index (2015=100)",
     },
