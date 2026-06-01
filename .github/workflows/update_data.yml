@@ -1,0 +1,26 @@
+name: Daily Data Update
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # runs every day at 06:00 UTC
+  workflow_dispatch:       # lets you run it manually
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Fetch fresh data
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: python update_data.py
+      - name: Commit and push if data changed
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/economic_data.csv
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Daily data update" && git push)
