@@ -10,6 +10,7 @@ WB_CODES = {
     'ID_UNEMPLOYMENT': ('SL.UEM.TOTL.ZS', 'IDN'),
     'TUR_GDP_GROWTH': ('NY.GDP.MKTP.KD.ZG', 'TUR'),
     'TUR_GDP_LEVEL': ('NY.GDP.MKTP.KD', 'TUR'),
+    'TUR_GDP_USD': ('NY.GDP.MKTP.CD', 'TUR'), 
 }
 
 def fetch_wb():
