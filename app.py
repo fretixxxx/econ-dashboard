@@ -137,7 +137,7 @@ COUNTRY_CONFIG = {
         "gdp_indicator": "GDP_GROWTH",
         "inflation_indicator": "INFLATION",
         "inflation_index_title": "HICP Index (2015=100)",
-        "gdp_level_scale": 1,
+        "gdp_level_scale": 1000,
     },
 }
 
