@@ -1,6 +1,6 @@
 ANALYSIS_TUR = """
 ### 1. Macroeconomic Diagnosis
-The Turkish economy expanded 2.5% YoY, slowing from 3.4% in Q4 2025 as tighter financial conditions and higher 
+The Turkish GDP has grown by 2.5%, slowing from 3.4% in Q4 2025 as tighter financial conditions and higher 
 energy costs reduce the economic activity. The IMF currently projects 3.4% growth in 2026, 
 while the World Bank sees 2.8%, which points to a moderate expansion rather than a strong rebound.
 
@@ -73,7 +73,7 @@ Headline CPI declines to around 20% by the end of 2026, as services inflation an
 The policy rate is held at 37% for most of the year. Growth remains modest at around 2.5–3.0%, 
 constrained by tight financial conditions and weak real wage growth, but services and tourism sectors
 prevent a sharper slowdown. Unemployment edges up slightly to around 8.5%, while the current account deficit 
-stays within a manageable 2.5–3.0% of GDP, financed without major disruption. This path is indeed, not a crisis, 
+stays within a manageable 2.5–3.0% of GDP, financed without major disruption. This path is indeed not a crisis, 
 but leaves the economy vulnerable to potential shocks and slowly improve living standards.
 
 - **Risk case:** The disinflation effort stalls. Political pressure leads to early rate cuts before securing national
@@ -90,4 +90,8 @@ lifting GDP growth to around 4%, while declining unemployment to around 7.5%. Im
 credibility lowers Turkey’s sovereign borrowing costs, providing fiscal breathing room and attracting 
 longer‑term capital inflows. This scenario, while possible, remains unlikely without a positive 
 external shock.
+
+*Sources: [TÜİK](https://www.tuik.gov.tr/) · [CBRT](https://www.tcmb.gov.tr/) · [IMF](https://www.imf.org/) · 
+[World Bank](https://www.worldbank.org/) · [OECD](https://www.oecd.org/)*
 """
+
