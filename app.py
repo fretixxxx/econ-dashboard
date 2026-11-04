@@ -108,6 +108,16 @@ def make_chart(df, indicator, title, color='#1f77b4'):
 
 # ---------- country configuration ----------
 COUNTRY_CONFIG = {
+        "Euro Area": {
+        "prefix": "EU",
+        "gdp_is_level": True,
+        "inflation_is_level": True,
+        "gdp_display_options": ["Billions (€)", "YoY Growth %"],
+        "gdp_indicator": "GDP_GROWTH",
+        "inflation_indicator": "INFLATION",
+        "inflation_index_title": "HICP Index (2015=100)",
+        "gdp_level_scale": 1000,
+    },
     "United States": {
         "prefix": "US",
         "gdp_is_level": True,
@@ -128,16 +138,6 @@ COUNTRY_CONFIG = {
         "inflation_indicator": "INFLATION",
         "inflation_index_title": "CPI Index (2015=100)",
         "gdp_level_scale": 1e9,                   # divide by 1 billion
-    },
-        "Euro Area": {
-        "prefix": "EU",
-        "gdp_is_level": True,
-        "inflation_is_level": True,
-        "gdp_display_options": ["Billions (€)", "YoY Growth %"],
-        "gdp_indicator": "GDP_GROWTH",
-        "inflation_indicator": "INFLATION",
-        "inflation_index_title": "HICP Index (2015=100)",
-        "gdp_level_scale": 1000,
     },
 }
 
