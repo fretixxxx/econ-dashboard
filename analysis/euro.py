@@ -80,7 +80,8 @@ Optimistic case: Energy prices fall, defence and infrastructure spending in Germ
 and inflation returns towards 2% faster than expected. The ECB can lower rates towards 2.25%, growth reaches 
 around 1.2% and unemployment declines slightly. This scenario requires an improvement in external demand 
 and a recovery in industrial activity, which is not visible in the foreseeable future.
-"""
 
 *Sources: [Eurostat](https://ec.europa.eu/eurostat) · [ECB](https://www.ecb.europa.eu/) · 
 [European Commission](https://economy-finance.ec.europa.eu/) · [Reuters](https://www.reuters.com/)*
+"""
+
