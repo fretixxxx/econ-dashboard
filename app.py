@@ -83,8 +83,10 @@ def get_latest(df, indicator):
     sub = df[df['indicator'] == indicator].dropna(subset=['value'])
     if sub.empty:
         return None, None
-    last = sub.sort_values('date').iloc[-1]
-    return last['value'], last['date'].strftime('%b %d, %Y')
+        last = sub.sort_values('date').iloc[-1]
+    # Force the date to be a datetime object before formatting
+        date_obj = pd.to_datetime(last['date'])
+        return last['value'], date_obj.strftime('%b %d, %Y')
 
 def make_chart(df, indicator, title, color='#1f77b4'):
     sub = df[df['indicator'] == indicator].dropna().sort_values('date')
