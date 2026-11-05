@@ -40,6 +40,8 @@ def load_data():
     return df
 
 df = load_data()
+df['date'] = pd.to_datetime(df['date'], errors='coerce')
+df = df.dropna(subset=['date'])
 
 def get_value_at_date(df, indicator, target_date):
     """Return the value of indicator closest to target_date."""
@@ -78,15 +80,44 @@ def compute_yoy_growth_series(df, indicator):
 
     growth_df = pd.DataFrame(yoy_values).dropna(subset=['value'])
     return growth_df
+@st.cache_data(ttl=3600)
+def load_data():
+    df = pd.read_csv('data/economic_data.csv', parse_dates=['date'])
+    return df
 
+df = load_data()
+
+# Ensure all dates are strictly pandas datetime objects, dropping bad ones
+df['date'] = pd.to_datetime(df['date'], errors='coerce')
+df = df.dropna(subset=['date'])
+
+def get_latest(df, indicator):
+    sub = df[df['indicator'] == indicator].dropna(subset=['value']).copy()
+    if sub.empty:
+        return None, None
+    # Force the date column to be datetime just in case
+    sub['date'] = pd.to_datetime(sub['date'], errors='coerce')
+    sub = sub.dropna(subset=['date'])
+    
+    if sub.empty:
+        return None, None
+        
+    last = sub.sort_values('date').iloc[-1]
+    try:
+        return float(last['value']), last['date'].strftime('%b %d, %Y')
+    except Exception:
+        return None, None
 def get_latest(df, indicator):
     sub = df[df['indicator'] == indicator].dropna(subset=['value'])
     if sub.empty:
         return None, None
-        last = sub.sort_values('date').iloc[-1]
-    # Force the date to be a datetime object before formatting
+    last = sub.sort_values('date').iloc[-1]
+    try:
+        # Force the date to be a datetime object before formatting
         date_obj = pd.to_datetime(last['date'])
-        return last['value'], date_obj.strftime('%b %d, %Y')
+        return float(last['value']), date_obj.strftime('%b %d, %Y')
+    except Exception:
+        return None, None
 
 def make_chart(df, indicator, title, color='#1f77b4'):
     sub = df[df['indicator'] == indicator].dropna().sort_values('date')
